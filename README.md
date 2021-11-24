@@ -3,6 +3,8 @@
 
 Class based on pymodbus.ModbusTcpClient, completely interchangeable, just replace ModbusTcpClient() with SungrowModbusTcpClient()
 
+Install: pip install SungrowModbusWebClient
+
 Example:
 For Solariot, open solariot.py
 
