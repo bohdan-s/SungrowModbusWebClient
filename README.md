@@ -37,6 +37,7 @@ Class based on pymodbus.ModbusTcpClient, completely interchangeable, just replac
 
 ### Requires
 * [pymodbus>=2.4.0](https://pypi.org/project/pymodbus/)
+* [websocket-client>=1.2.1](https://pypi.org/project/websocket-client/)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
