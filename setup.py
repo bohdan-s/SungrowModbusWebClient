@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="SungrowModbusWebClient",
-    version="0.2.0",
+    version="0.2.1",
     author="Bohdan Flower",
     author_email="github@bohdan.net",
     description="A ModbusWebClient wrapper for talking to Sungrow WiNet-S Dongle via HTTP API",
