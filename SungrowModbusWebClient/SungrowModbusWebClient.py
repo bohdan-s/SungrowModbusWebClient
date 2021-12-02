@@ -130,11 +130,11 @@ class SungrowModbusWebClient(BaseModbusClient):
             logging.debug("Payload Dict: " + str(self.payload_dict))
             modbus_data = self.payload_dict['result_data']['param_value'].split(' ')
             modbus_data.pop() # remove null on the end
-            data_len = int(len(modbus_data) + 3) # length of data + header of 3
+            data_len = int(len(modbus_data)) # length of data
             logging.info("Data length: " + str(data_len))
             # Build the Header, The header is consumed by pyModbus and not actually sent to the device
-            # [aaaa][bbbb][cccc][dd][ee][ff] a = Transaction ID, b = Protocol ID, c = Length, d =  Device ID, e = Function Code, f = Length
-            self.payload_modbus = ['00', format(request[1], '02x'), '00', '00', '00', format(data_len, '02x'), format(request[6], '02x'), format(request[7], '02x'), format(data_len, '02x')]
+            # [aaaa][bbbb][cccc][dd][ee][ff] a = Transaction ID, b = Protocol ID, c = Message Length (Data + Header of 3), d =  Device ID, e = Function Code, f = Data Length
+            self.payload_modbus = ['00', format(request[1], '02x'), '00', '00', '00', format((data_len+3), '02x'), format(request[6], '02x'), format(request[7], '02x'), format(data_len, '02x')]
             # Attach the data we recieved from HTTP request to the header we created to make a modbus RTU message
             self.payload_modbus.extend(modbus_data)
             logging.debug("Modbus Header: " + str(self.payload_modbus))
