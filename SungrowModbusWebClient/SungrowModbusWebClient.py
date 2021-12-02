@@ -4,7 +4,6 @@ from pymodbus.factory import ClientDecoder
 from pymodbus.exceptions import ConnectionException
 from websocket import create_connection
 
-import websocket
 import requests
 import logging
 import json
@@ -12,7 +11,9 @@ import time
 
 # --------------------------------------------------------------------------- #
 # Modbus Web Client Transport Implementation for Sungrow WiNet-S Dongle
-# Drop in replacement for ModbusTcpClient
+# Drop in replacement for ModbusTcpClient/SungrowModbusTCPClient
+# This uses HTTP requests to retrieve Modbus packets, add a header and then
+# pass to PyModbus to parse like a standard Modbus RTU message
 # --------------------------------------------------------------------------- #
 
 class SungrowModbusWebClient(BaseModbusClient):
@@ -59,7 +60,13 @@ class SungrowModbusWebClient(BaseModbusClient):
         logging.debug("Connection to websocket server established: " + self.ws_endpoint)
         
         self.ws_socket.send(json.dumps({ "lang": "en_us", "token": self.ws_token, "service": "connect" }))
-        result =  self.ws_socket.recv()
+        try:
+            result =  self.ws_socket.recv()
+        except:
+            result =  ""
+            logging.error("Connection Failed")
+            raise ConnectionException(self.__str__())
+
         payload_dict = json.loads(result)
         logging.debug(payload_dict)
         
@@ -90,8 +97,6 @@ class SungrowModbusWebClient(BaseModbusClient):
         return self.ws_socket is not None
 
     def close(self):
-        """ We dont really have a connection, so we just invalidate the token
-        """
         return self.ws_socket is None
 
     def _send(self, request):
@@ -119,16 +124,18 @@ class SungrowModbusWebClient(BaseModbusClient):
         
         logging.debug(f'Calling: http://{str(self.dev_host)}/device/getParam?dev_id={dev_id}&dev_type={str(self.dev_type)}&dev_code={str(self.dev_code)}&type=3&param_addr={address}&param_num={count}&param_type={str(param_type)}&token={self.ws_token}&lang=en_us&time123456={str(int(time.time()))}')
         r =requests.get(f'http://{str(self.dev_host)}/device/getParam?dev_id={dev_id}&dev_type={str(self.dev_type)}&dev_code={str(self.dev_code)}&type=3&param_addr={address}&param_num={count}&param_type={str(param_type)}&token={self.ws_token}&lang=en_us&time123456={str(int(time.time()))}')
-
         if str(r.status_code) == '200':
             logging.info("Connection Sucsessful: Status code - " + str(r.status_code))
             self.payload_dict = json.loads(str(r.text))
             logging.debug("Payload Dict: " + str(self.payload_dict))
             modbus_data = self.payload_dict['result_data']['param_value'].split(' ')
             modbus_data.pop() # remove null on the end
-            data_len = int(len(modbus_data) + 3) # length of data + header
+            data_len = int(len(modbus_data) + 3) # length of data + header of 3
             logging.info("Data length: " + str(data_len))
-            self.payload_modbus = ['00', format(request[1], '02x'), '00', '00', '00', format(data_len, '02x'), format(request[6], '02x'), format(request[7], '02x'), format(int(len(modbus_data)), '02x')]
+            # Build the Header, The header is consumed by pyModbus and not actually sent to the device
+            # [aaaa][bbbb][cccc][dd][ee][ff] a = Transaction ID, b = Protocol ID, c = Length, d =  Device ID, e = Function Code, f = Length
+            self.payload_modbus = ['00', format(request[1], '02x'), '00', '00', '00', format(data_len, '02x'), format(request[6], '02x'), format(request[7], '02x'), format(data_len, '02x')]
+            # Attach the data we recieved from HTTP request to the header we created to make a modbus RTU message
             self.payload_modbus.extend(modbus_data)
             logging.debug("Modbus Header: " + str(self.payload_modbus))
             logging.debug("Modbus Data: " + str(modbus_data))
@@ -139,21 +146,10 @@ class SungrowModbusWebClient(BaseModbusClient):
             logging.info("Connection Failed: Status code - " + str(r.status_code))
             self.ws_token = ""
             return None
-        
-        if not self.ws_socket:
-            raise ConnectionException(self.__str__())
-        if self.state == ModbusTransactionState.RETRYING:
-            data = self._check_read_buffer()
-            if data:
-                return data
-
-        if request:
-            return self.ws_socket.send(request)
-        return 0
 
     def _recv(self, size):
         """ This doesn't actually recieve any data.
-            This will process the data already returned in the HTTP response in _send()
+            This will process the data already returned in the HTTP response in _send(), self.payload_modbus
         """
 
         if not self.payload_modbus:
