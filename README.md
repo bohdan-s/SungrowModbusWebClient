@@ -49,7 +49,8 @@ Install via PIP, then if replace ModbusTcpClient() or SungrowModbusTcpClient() w
 ### Installation
 
 1. Install with PIP
-   ```pip install SungrowModbusWebClient
+   ```sh
+   pip install SungrowModbusWebClient
    ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
