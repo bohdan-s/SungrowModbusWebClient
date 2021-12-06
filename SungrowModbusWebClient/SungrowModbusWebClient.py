@@ -20,10 +20,11 @@ class SungrowModbusWebClient(BaseModbusClient):
     """ Implementation of a modbus over Sungrow HTTP client
     """
 
-    # See: Appendix 6、Device Information
+    # See: Appendix 6、Device Information in "Communication Protocol of PV Grid-Connected String Inverters"
     model_codes = {
         "9264": "SG5.0RT",
-        "9276": "SG7.0RT"
+        "9276": "SG7.0RT",
+        "9267": "SG10RT"
     }
 
     def __init__(self, host='127.0.0.1', port=8082,
