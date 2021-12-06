@@ -21,7 +21,9 @@ class SungrowModbusWebClient(BaseModbusClient):
     """
 
     # See: Appendix 6、Device Information in "Communication Protocol of PV Grid-Connected String Inverters"
+    # https://github.com/bohdan-s/Sungrow-Inverter/blob/main/Modbus%20Information/Communication%20Protocol%20of%20PV%20Grid-Connected%20String%20Inverters_V1.1.37_EN.pdf
     # TD_202103_Sungrow Inverter and Compatible Accessories_V1.0: SG5.0/7.0/10/15/20RT
+    # https://github.com/bohdan-s/Sungrow-Inverter/blob/main/Install%20Guides/TD_202103_Sungrow%20Inverter%20and%20Compatible%20Accessories_V1.0.pdf
     model_codes = {
         "9264": "SG5.0RT",
         "9276": "SG7.0RT",
