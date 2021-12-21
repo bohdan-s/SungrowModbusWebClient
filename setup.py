@@ -1,11 +1,13 @@
 import setuptools
 
+exec(open('SungrowModbusWebClient/version.py').read())
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="SungrowModbusWebClient",
-    version="0.2.4",
+    version=__version__,
     author="Bohdan Flower",
     author_email="github@bohdan.net",
     description="A ModbusWebClient wrapper for talking to Sungrow WiNet-S Dongle via HTTP API",
