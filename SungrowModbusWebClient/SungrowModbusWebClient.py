@@ -45,14 +45,13 @@ class SungrowModbusWebClient(BaseModbusClient):
 
         self.dev_host = host
         self.ws_port = port
-        self.ws_socket = None
         self.timeout = kwargs.get('timeout',  '5')
+        self.ws_socket = None
         BaseModbusClient.__init__(self, framer(ClientDecoder(), self), **kwargs)
         
         self.ws_endpoint = "ws://" + str(self.dev_host) + ":" + str(self.ws_port) + "/ws/home/overview"
         self.ws_token = ""
         self.dev_type = ""
-        self.dev_procotol = ""
         self.dev_code = ""
 
     def connect(self):
@@ -63,7 +62,12 @@ class SungrowModbusWebClient(BaseModbusClient):
         if self.ws_token:
             return True
 
-        self.ws_socket = create_connection(self.ws_endpoint)
+        try:
+            self.ws_socket = create_connection(self.ws_endpoint,timeout=self.timeout)
+        except Exception as err:
+            logging.debug(f"Connection to websocket server failed: {self.ws_endpoint}, Message: {err}")
+            return None
+
         logging.debug("Connection to websocket server established: " + self.ws_endpoint)
         
         self.ws_socket.send(json.dumps({ "lang": "en_us", "token": self.ws_token, "service": "connect" }))
@@ -135,7 +139,7 @@ class SungrowModbusWebClient(BaseModbusClient):
         logging.debug("param_type: " + str(param_type) + ", start_address: " + str(address) + ", count: " + str(count) + ", dev_id: " +str(dev_id))       
         logging.debug(f'Calling: http://{str(self.dev_host)}/device/getParam?dev_id={dev_id}&dev_type={str(self.dev_type)}&dev_code={str(self.dev_code)}&type=3&param_addr={address}&param_num={count}&param_type={str(param_type)}&token={self.ws_token}&lang=en_us&time123456={str(int(time.time()))}')
         try:
-            r =requests.get(f'http://{str(self.dev_host)}/device/getParam?dev_id={dev_id}&dev_type={str(self.dev_type)}&dev_code={str(self.dev_code)}&type=3&param_addr={address}&param_num={count}&param_type={str(param_type)}&token={self.ws_token}&lang=en_us&time123456={str(int(time.time()))}', timeout=3)
+            r =requests.get(f'http://{str(self.dev_host)}/device/getParam?dev_id={dev_id}&dev_type={str(self.dev_type)}&dev_code={str(self.dev_code)}&type=3&param_addr={address}&param_num={count}&param_type={str(param_type)}&token={self.ws_token}&lang=en_us&time123456={str(int(time.time()))}', timeout=self.timeout)
         except Exception as err:
             raise ConnectionException(f"HTTP Request failed: {str(err)}")
         logging.debug("HTTP Status code " + str(r.status_code))

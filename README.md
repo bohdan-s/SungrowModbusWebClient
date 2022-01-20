@@ -71,6 +71,16 @@ Replace SungrowModbusTcpClient with SungrowModbusWebClient near lines 100 & 101
 
 ## Tested
 * SG7.0RT with WiNet-S Dongle
+* SG10RT with WiNet-S Dongle
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+## Building
+```sh
+python setup.py sdist
+twine upload dist/*
+```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
