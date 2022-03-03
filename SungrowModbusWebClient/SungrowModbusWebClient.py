@@ -117,6 +117,8 @@ class SungrowModbusWebClient(BaseModbusClient):
             # Device model, see Appendix 6
             self.dev_code = next(s for s in self.model_codes if self.model_codes[s] == payload_dict['result_data']['list'][0]['dev_model'])
             logging.debug("Retrieved: dev_type = " + str(self.dev_type) + ", dev_code = " + str(self.dev_code))
+            if not self.dev_code:
+                logging.warning(f"Model {payload_dict['result_data']['list'][0]['dev_model']} not supported, please open a GIT Issue to add support")
         else:
             logging.warning("Connection Failed", payload_dict['result_msg'] )
             raise ConnectionException(self.__str__())
