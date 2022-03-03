@@ -30,7 +30,22 @@ class SungrowModbusWebClient(BaseModbusClient):
         "9276": "SG7.0RT",
         "9267": "SG10RT",
         "9269": "SG15RT",
-        "9271": "SG20RT"
+        "9271": "SG20RT",
+        "3337": "SH5K-20",
+        "3334": "SH3K6",
+        "3335": "SH4K6",
+        "3331": "SH5K-V13",
+        "3340": "SH5K-30 ",
+        "3338": "SH3K6-30",
+        "3339": "SH4K6-30",
+        "3343": "SH5.0RS",
+        "3341": "SH3.6RS",
+        "3342": "SH4.6RS",
+        "3344": "SH6.0RS",
+        "3587": "SH10RT",
+        "3586": "SH8.0RT",
+        "3585": "SH6.0RT",
+        "3584": "SH5.0RT"
     }
 
     def __init__(self, host='127.0.0.1', port=8082,
@@ -97,9 +112,9 @@ class SungrowModbusWebClient(BaseModbusClient):
         logging.debug(payload_dict)
         
         if payload_dict['result_msg'] == 'success':
-            # Device Type, 21 = Inverter?
+            # Device Type, 21 = PV Inverter, 35 = Hybrid Inverter
             self.dev_type = payload_dict['result_data']['list'][0]['dev_type']      
-            # Device model, see Appendix 6            
+            # Device model, see Appendix 6
             self.dev_code = next(s for s in self.model_codes if self.model_codes[s] == payload_dict['result_data']['list'][0]['dev_model'])
             logging.debug("Retrieved: dev_type = " + str(self.dev_type) + ", dev_code = " + str(self.dev_code))
         else:
@@ -157,8 +172,6 @@ class SungrowModbusWebClient(BaseModbusClient):
                 self.payload_modbus = ['00', format(request[1], '02x'), '00', '00', '00', format((data_len+3), '02x'), format(request[6], '02x'), format(request[7], '02x'), format(data_len, '02x')]
                 # Attach the data we recieved from HTTP request to the header we created to make a modbus RTU message
                 self.payload_modbus.extend(modbus_data)
-#                logging.debug("Modbus Header: " + str(self.payload_modbus))
-#                logging.debug("Modbus Data: " + str(modbus_data))
                 #logging.debug("Modbus RTU: " + str(self.payload_modbus))
                 return self.payload_modbus
             elif self.payload_dict.get('result_code',0) == 106:
@@ -203,7 +216,6 @@ class SungrowModbusWebClient(BaseModbusClient):
         del self.payload_modbus[0:counter]
 
         logging.debug("Requested Size: " + str(size) + ", Returned Size: " + str(counter))
-#        logging.debug("Returned Data: " + str(data))
 
         if  int(counter) < int(size):
             return self._handle_abrupt_socket_close(size, data, time.time() - time_)
