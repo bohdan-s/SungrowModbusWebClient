@@ -25,28 +25,6 @@ class SungrowModbusWebClient(BaseModbusClient):
     # https://github.com/bohdan-s/Sungrow-Inverter/blob/main/Modbus%20Information/Communication%20Protocol%20of%20PV%20Grid-Connected%20String%20Inverters_V1.1.37_EN.pdf
     # TD_202103_Sungrow Inverter and Compatible Accessories_V1.0: SG5.0/7.0/10/15/20RT
     # https://github.com/bohdan-s/Sungrow-Inverter/blob/main/Install%20Guides/TD_202103_Sungrow%20Inverter%20and%20Compatible%20Accessories_V1.0.pdf
-    model_codes = {
-        "9264": "SG5.0RT",
-        "9276": "SG7.0RT",
-        "9267": "SG10RT",
-        "9269": "SG15RT",
-        "9271": "SG20RT",
-        "3337": "SH5K-20",
-        "3334": "SH3K6",
-        "3335": "SH4K6",
-        "3331": "SH5K-V13",
-        "3340": "SH5K-30 ",
-        "3338": "SH3K6-30",
-        "3339": "SH4K6-30",
-        "3343": "SH5.0RS",
-        "3341": "SH3.6RS",
-        "3342": "SH4.6RS",
-        "3344": "SH6.0RS",
-        "3587": "SH10RT",
-        "3586": "SH8.0RT",
-        "3585": "SH6.0RT",
-        "3584": "SH5.0RT"
-    }
 
     def __init__(self, host='127.0.0.1', port=8082,
         framer=ModbusSocketFramer, **kwargs):
@@ -106,7 +84,8 @@ class SungrowModbusWebClient(BaseModbusClient):
             raise ConnectionException(f"Connection Failed {payload_dict['result_msg']}")
         
         logging.debug("Requesting Device Information")
-        self.ws_socket.send(json.dumps({ "lang": "en_us", "token": self.ws_token, "service": "runtime" }))
+        self.ws_socket.send(json.dumps({ "lang": "en_us", "token": self.ws_token, "service": "devicelist", "type": "0","is_check_token": "0" }))
+        #self.ws_socket.send(json.dumps({ "lang": "en_us", "token": self.ws_token, "service": "runtime" }))
         result =  self.ws_socket.recv()
         payload_dict = json.loads(result)
         logging.debug(payload_dict)
@@ -115,10 +94,9 @@ class SungrowModbusWebClient(BaseModbusClient):
             # Device Type, 21 = PV Inverter, 35 = Hybrid Inverter
             self.dev_type = payload_dict['result_data']['list'][0]['dev_type']      
             # Device model, see Appendix 6
-            self.dev_code = next(s for s in self.model_codes if self.model_codes[s] == payload_dict['result_data']['list'][0]['dev_model'])
+            self.dev_code = payload_dict['result_data']['list'][0]['dev_code']
+            #self.dev_code = next(s for s in self.model_codes if self.model_codes[s] == payload_dict['result_data']['list'][0]['dev_model'])
             logging.debug("Retrieved: dev_type = " + str(self.dev_type) + ", dev_code = " + str(self.dev_code))
-            if not self.dev_code:
-                logging.warning(f"Model {payload_dict['result_data']['list'][0]['dev_model']} not supported, please open a GIT Issue to add support")
         else:
             logging.warning("Connection Failed", payload_dict['result_msg'] )
             raise ConnectionException(self.__str__())
