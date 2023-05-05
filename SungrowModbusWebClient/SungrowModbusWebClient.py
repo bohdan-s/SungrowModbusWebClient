@@ -1,4 +1,4 @@
-from pymodbus.client.sync import BaseModbusClient
+from pymodbus.client import BaseModbusClient
 from pymodbus.transaction import ModbusSocketFramer, ModbusBinaryFramer
 from pymodbus.factory import ClientDecoder
 from pymodbus.exceptions import ConnectionException

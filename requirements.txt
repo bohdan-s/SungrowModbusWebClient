@@ -1,2 +1,2 @@
-pymodbus>=2.4.0
-websocket-client>=1.2.1
+pymodbus>=3.2.2
+websocket-client>=1.5.1
